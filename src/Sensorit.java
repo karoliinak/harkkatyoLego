@@ -2,7 +2,14 @@ import lejos.nxt.Button;
 import lejos.nxt.ColorSensor;
 import lejos.nxt.LCD;
 import lejos.nxt.UltrasonicSensor;
-import lejos.robotics.navigation.DifferentialPilot;
+
+/**
+ * Sensorit -luokkaa k‰ytet‰‰n viivan seurantaan, edess‰ olevan esteen havaitsemiseen ja kuluneen ajan tulostamiseen.
+ * 
+ * @author Karoliina Kunnas
+ * @version 1.0
+ * @since
+ */
 
 public class Sensorit implements Runnable {
 
@@ -18,6 +25,13 @@ public class Sensorit implements Runnable {
 	private ColorSensor cSensori;
 	private Ajaja ajaja;
 
+	/**
+	 * @param cSensori
+	 * @param uSensori
+	 * @param ajaja
+	 * @param ajastin
+	 * 		Sensorit saa Ajoluokka -luokassa luodut ColorSensor, UltrasonicSensor ja Ajaja -oliot.
+	 */
 	Sensorit(ColorSensor cSensori, UltrasonicSensor uSensori, Ajaja ajaja,
 			Ajastin ajastin) {
 		this.cSensori = cSensori;
@@ -25,6 +39,11 @@ public class Sensorit implements Runnable {
 		this.ajaja = ajaja;
 		this.ajastin = ajastin;
 	}
+	
+	/**
+	 * Lukee valoarvon RGB-sensorilla ja tallentaa sen muuttujaan viivaVari. Laskee viivaMin, viivaMax, jyrkkaMin ja
+	 * jyrkkaMax arvot k‰ytt‰en viivaVari arvoa. 
+	 */
 
 	// Tallennetaan valoarvot muuttujaan, lasketaan tarvittavat minimi ja
 	// maksimi arvot
@@ -44,6 +63,29 @@ public class Sensorit implements Runnable {
 		jyrkkaMax = viivaVari + 15;
 	}
 
+	/**
+	 *  Asettaa robotin RGB-sensorin valon p‰‰lle ja tallentaa viivan valoarvon muuttujaan, jonka j‰lkeen
+	 *  asettaa kumman puolen seuraaja robotti on. Sirtyy vaiheeseen 1 ja kutsuu ajastimen aloitusaika() -metodia.
+	 *  
+	 *  Tutkii vaiheen 1 aikana valoarvoa RGB-sensorilla ja samalla tutkii ultra‰‰ni-sensorilla onko 
+	 *  edess‰ estett‰. Vasemman puolen seuraaja: kaartaa loivasti oikealle, jos viivan valoarvo on pienempi kuin 
+	 *  viivaMin ja suurempi kuin jyrkkaMin. kaartaa jyrk‰sti oikealle, jos viivan arvo on pienempi kuin jyrkkaMin. 
+	 *  Kaartaa loivasti vasemmalle, jos viivan arvo on suurempi kuin viivaMax ja pienempi kuin jyrkkaMax. 
+	 *  Kaartaa jyrk‰sti vasemmalle, jos viivan arvo on suurempi kuin jyrkkaMax. Liikkuu suoraan eteenp‰in, jos 
+	 *  viivan arvo on pienempi kuin viivaMax ja suurempi kuin viivaMin. Siirtyy vaiheeseen 2, jos robotti havaitsee 
+	 *  esteen 20cm p‰‰st‰. 
+	 *  
+	 *  Kutsuu ajaja-luokan vaistoVasemmalle()- tai vaistoOikealle() -metodia vaiheen 2 aikana riippuen siit‰
+	 *  kumman puolen seuraaja robotti on. V‰istˆn j‰lkeen robotti siirtyy vaiheeseen 3. 
+	 *  
+	 *  Liikkuu suoraan eteenp‰in vaiheen 3 aikana niin kauan kun RGB-sensorilla luettu valoarvo on suurempi
+	 *  kuin viivaMax. Siirtyy takaisin vaiheeseen 1, kun valoarvo on yht‰ suuri kuin viivaMax. 
+	 *  
+	 *  Pys‰htyy vaiheen 0 aikana. 
+	 *  
+	 *  Laskee kuluneen ajan ja tulostaa sen n‰ytˆlle lopuksi. 
+	 */
+	
 	public void run() {
 		// Laitetaan RGB Sensorin punainen valo p‰‰lle
 		cSensori.setFloodlight(true);
